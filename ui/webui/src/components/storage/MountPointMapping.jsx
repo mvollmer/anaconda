@@ -72,6 +72,7 @@ const getInitialRequests = (usablePartitioningRequests, requiredMountPoints) => 
     const bootOriginalRequest = usablePartitioningRequests.find(r => r["mount-point"] === "/boot");
     const rootOriginalRequest = usablePartitioningRequests.find(r => r["mount-point"] === "/");
     const bootEfiOriginalRequest = usablePartitioningRequests.find(r => r["mount-point"] === "/boot/efi");
+    const cmpm = JSON.parse(window.localStorage.getItem("cockpit_mount_points"));
 
     const requests = requiredMountPoints.map((mountPoint, idx) => {
         const request = ({ "mount-point": mountPoint.value, reformat: mountPoint.name === "root" });
@@ -86,6 +87,10 @@ const getInitialRequests = (usablePartitioningRequests, requiredMountPoints) => 
 
         if (mountPoint.name === "boot-efi" && bootEfiOriginalRequest) {
             return { ...bootEfiOriginalRequest, ...request };
+        }
+
+        if (!request["device-spec"] && cmpm[mountPoint.value]) {
+            return { "device-spec": cmpm[mountPoint.value].replace(/^\/dev\//, ""), ...request };
         }
 
         return request;
@@ -568,6 +573,7 @@ const MountPointMappingContent = ({ deviceData, partitioningData, usablePartitio
     } else {
         return (
             <>
+                <p>Cockpit says: {window.localStorage.getItem("cockpit_mount_points")}</p>
                 <RequestsTable
                   allDevices={allDevices}
                   deviceData={deviceData}
